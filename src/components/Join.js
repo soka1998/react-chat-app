@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Chat from '../components/Chat';
 
+import io from 'socket.io-client'
+const socket = io("http://localhost:3001");
 
-const Join = ({socket}) => {
+const Join = () => {
     const [username, setUsername] = useState("");
     const [room, setRoom] = useState("");
     const [showChat, setShowChat] = useState(false);
     const navigate = useNavigate();
 
 
-    const handleInputChange = (event) => {
-        setUsername(event.target.value);
-    };
+    // const handleInputChange = (event) => {
+    //     setUsername(event.target.value);
+    // };
 
     const joinRoom = () => {
         if (username !== "" && room !== "") {

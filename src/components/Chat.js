@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import {io} from 'socket.io-client'
-const socket = io.connect("http://localhost:3001");
+
 
 
 // const socket = io('http://localhost:3000')
-const Chat = ({ username, room }) => {
+const Chat = ({ socket, username, room }) => {
     const [newMessage, setNewMessage] = useState("");
     const [messages, setMessages] = useState([]);
 
@@ -14,24 +13,31 @@ const Chat = ({ username, room }) => {
     const location = useLocation();
     // const queryUsername = new URLSearchParams(location.search).get('username');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (newMessage.trim() !== '') {
+            const currentTime = `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`;
             const messageData = {
                 room: room,
                 author: username,
                 message: newMessage,
-                time: new Date(Date.now()).getHours() + ":" + new Date(Date.now()).getMinutes()
+                time: currentTime
             };
-            socket.emit("send_message", messageData);
-            setMessages([...messages, messageData]);
-            setNewMessage('');
+            try {
+                await socket.emit("send_message", messageData);
+                setMessages([...messages, messageData]); // Update messages state
+                setNewMessage('');
+            } catch (error) {
+                console.error("Error sending message:", error);
+            }
         }
     };
 
+
+
     useEffect(() => {
         socket.on("receive_message", (data) => {
-            setMessages([...messages, data]);
+            setMessages((prevMessages) => [...prevMessages, data]); // Concatenate new messages with existing ones
         });
 
         // Scroll to bottom of chat when new message is added
@@ -42,20 +48,30 @@ const Chat = ({ username, room }) => {
         return () => {
             socket.off("receive_message");
         };
-    }, []);
+    }, [socket]);
 
     return (
         <div className="bg-red-200 min-h-screen flex flex-col items-center justify-center">
             <div className="bg-amber-100 container mx-auto p-8 rounded-lg shadow-md">
                 <h1 className="text-3xl font-bold mb-4">Salle de Chat</h1>
-                <div id="chat-container" className="border border-gray-400 rounded-lg p-4 h-64 overflow-y-auto mb-4">
+                <div id="chat-container" className="border border-gray-400 rounded-lg p-4 h-64 overflow-y-auto mb-4 " >
                     {messages.map((message, index) => (
-                        <div key={index} className="mb-2">
-                            <span className="font-bold">{message.author}:</span> {message.message}
+                        <div
+                            key={index}
+                            className={`mb-2 ${username === message.author ? 'bg-blue-200 text-right' : 'bg-gray-200 text-left'}`}
+                            style={{ borderRadius: '10px', padding: '8px' }}
+                        >
+                            <span className={`font-bold ${username === message.author ? 'text-blue-900' : 'text-gray-900'}`}>
+                                <span className="funny-name">{message.author}</span>:
+                            </span> {message.message}
+                            <span className="ml-2 text-gray-500">{message.time}</span> {/* Display time */}
                         </div>
+
+
+
                     ))}
                 </div>
-                <form onSubmit={handleSubmit} className="flex justify-center">
+                <form className="flex justify-center">
                     <input
                         type="text"
                         placeholder="Votre message"
@@ -63,7 +79,7 @@ const Chat = ({ username, room }) => {
                         onChange={(e) => setNewMessage(e.target.value)}
                         className="border border-gray-400 rounded-lg px-4 py-2 mr-2 w-64"
                     />
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    <button type="submit" onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                         Envoyer
                     </button>
                 </form>
