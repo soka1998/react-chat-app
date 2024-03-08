@@ -52,7 +52,7 @@ const Chat = ({ socket, username, room }) => {
 
     return (
         <div className="bg-red-200 min-h-screen flex flex-col items-center justify-center">
-            <div className="bg-amber-100 container mx-auto p-8 rounded-lg shadow-md">
+            <div className="bg-amber-100 container mx-auto p-8 rounded-lg shadow-[#555] shadow-lg">
                 <h1 className="text-3xl font-bold mb-4">Salle de Chat</h1>
                 <div id="chat-container" className="border border-gray-400 rounded-lg p-4 h-64 overflow-y-auto mb-4 " >
                     {messages.map((message, index) => (
@@ -80,7 +80,7 @@ const Chat = ({ socket, username, room }) => {
                         className="border border-gray-400 rounded-lg px-4 py-2 mr-2 w-64"
                     />
                     <button type="submit" onClick={handleSubmit} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Envoyer
+                        Envoyer &#9658;
                     </button>
                 </form>
             </div>
